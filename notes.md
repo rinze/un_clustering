@@ -1,4 +1,4 @@
-# Voting errors
+# Notes
 
 From http://research.un.org/c.php?g=98268&p=636558:
 
@@ -9,3 +9,9 @@ data is not changed and the vote must therefore be researched in the meeting
 records.
 </blockquote>
 
+
+Found a couple of blog articles that were alreading writing about this, but in a 
+different way: 
+
+1. http://enelmargen.org/datascience/un-voting-patterns/
+2. http://enelmargen.org/datascience/un-voting-communities/
