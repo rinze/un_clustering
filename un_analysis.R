@@ -45,13 +45,13 @@ plot(l$year, l$n)
 # Color: distance to USA / URSS until 1991. Later: ?
 
 # Test
-year <- 1950
+year <- 2013
 raw_data_year <- raw_data[raw_data$year == year, ]
 raw_data_year$CountryName <- factor(raw_data_year$CountryName)
 # Or:
 # raw_data_year_wide <- dcast(raw_data_year, CountryName ~ rcid + vote, fun.aggregate = length)
 # And use that directly (save for the first column)
-raw_data_year_wide <- dcast(raw_data_year, rcid + vote2 ~ CountryName, fun.aggregate = length)
+raw_data_year_wide <- dcast(raw_data_year, rcid + vote3 ~ CountryName, fun.aggregate = length)
 cos <- cosine(as.matrix(raw_data_year_wide[, -c(1, 2)]))
 t_year <- tsne(cos, k = 2, initial_dims = 50, max_iter = 3000,
                perplexity = 20, whiten = FALSE)
