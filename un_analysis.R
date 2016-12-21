@@ -45,22 +45,29 @@ plot(l$year, l$n)
 # Color: distance to USA / URSS until 1991. Later: ?
 
 # Test
-year <- 2013
-raw_data_year <- raw_data[raw_data$year == year, ]
-raw_data_year$CountryName <- factor(raw_data_year$CountryName)
-# Or:
-# raw_data_year_wide <- dcast(raw_data_year, CountryName ~ rcid + vote, fun.aggregate = length)
-# And use that directly (save for the first column)
-raw_data_year_wide <- dcast(raw_data_year, rcid + vote3 ~ CountryName, fun.aggregate = length)
-cos <- cosine(as.matrix(raw_data_year_wide[, -c(1, 2)]))
-t_year <- tsne(cos, k = 2, initial_dims = 50, max_iter = 3000,
-               perplexity = 20, whiten = FALSE)
+#years <- c(2013)
+years <- unique(raw_data$year)
 
-t_year <- data.frame(x = t_year[, 1], y = t_year[, 2], 
-                     #country = raw_data_year_wide$CountryName)
-                     country = names(raw_data_year_wide[-c(1, 2)]))
-
-plt1 <- ggplot(t_year) + geom_text_repel(aes(x = x, y = y, label = country)) +
-        geom_point(aes(x = x, y = y)) +
-        ggtitle(sprintf("The world in %d", year))
-plot(plt1)
+for (year in years) {
+    cat("Processing year", year, "...\n")
+    raw_data_year <- raw_data[raw_data$year == year, ]
+    raw_data_year$CountryName <- factor(raw_data_year$CountryName)
+    # Or:
+    # raw_data_year_wide <- dcast(raw_data_year, CountryName ~ rcid + vote, fun.aggregate = length)
+    # And use that directly (save for the first column)
+    raw_data_year_wide <- dcast(raw_data_year, rcid + vote3 ~ CountryName, fun.aggregate = length)
+    cos <- cosine(as.matrix(raw_data_year_wide[, -c(1, 2)]))
+    t_year <- tsne(cos, k = 2, initial_dims = 50, max_iter = 3000,
+                   perplexity = 20, whiten = FALSE)
+    
+    t_year <- data.frame(x = t_year[, 1], y = t_year[, 2], 
+                         #country = raw_data_year_wide$CountryName)
+                         country = names(raw_data_year_wide[-c(1, 2)]))
+    
+    plt1 <- ggplot(t_year) + geom_text_repel(aes(x = x, y = y, label = country)) +
+            geom_point(aes(x = x, y = y)) +
+            ggtitle(sprintf("The world in %d", year))
+    #plot(plt1)
+    ggsave(sprintf("/tmp/un_cluster_%s.pdf", year), plot = plt1,
+           width = 15, height = 15)
+}
