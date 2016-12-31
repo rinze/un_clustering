@@ -69,9 +69,8 @@ for (year in years) {
     t_year <- tsne(cos, k = 2, initial_dims = 50, max_iter = 3000,
                    perplexity = 20, whiten = FALSE)
     
-    t_year <- data.frame(x = t_year[, 1], y = t_year[, 2], 
-                         #country = raw_data_year_wide$CountryName)
-                         country = names(raw_data_year_wide[-c(1, 2)]))
+    t_year <- data.frame(x = t_year[, 1], y = t_year[, 2],
+                         country = rownames(cos))
     
     plt1 <- ggplot(t_year) + geom_text_repel(aes(x = x, y = y, label = country)) +
             geom_point(aes(x = x, y = y)) +
