@@ -48,8 +48,10 @@ plot(l$year, l$n)
 #years <- c(2013)
 years <- unique(raw_data$year)
 
-for (year in years) {
-    cat("Processing year", year, "...\n")
+# Generate the cosine matrices. One per year, returned as a list
+
+cosined_data <- lapply(unique(years), function(year) {
+    cat("Computing cosine metrics for year", year, "\n")
     raw_data_year <- raw_data[raw_data$year == year, ]
     raw_data_year$CountryName <- factor(raw_data_year$CountryName)
     # Or:
@@ -57,6 +59,13 @@ for (year in years) {
     # And use that directly (save for the first column)
     raw_data_year_wide <- dcast(raw_data_year, rcid + vote3 ~ CountryName, fun.aggregate = length)
     cos <- cosine(as.matrix(raw_data_year_wide[, -c(1, 2)]))
+    return(cos)
+    })
+
+# Proceed with the clustering
+for (year in years) {
+    cat("Processing year", year, "...\n")
+    cos <- cosined_data[[year - min(raw_data$year) + 1]] # 1946 -> 1, and so on
     t_year <- tsne(cos, k = 2, initial_dims = 50, max_iter = 3000,
                    perplexity = 20, whiten = FALSE)
     
