@@ -6,6 +6,33 @@ library(ggplot2)
 library(ggrepel)
 library(lsa) # cosine function
 
+get_time_evolution <- function(cosined_data, country1, country2) {
+    # Returns the evolution of the "agreement" between country1 and country2
+    # through the different years. If one year does not contain data, put NA
+    # in place.
+    
+    offset <- 1945 # year offset
+    c_str <- paste(country1, country2, sep = " - ")
+    
+    agreement <- sapply(cosined_data, function(m) {
+        # m is a matrix with the proper row / column names. Let's try to
+        # find the requested countries in there.
+        country1 <- which(grepl(country1, rownames(m)))
+        country2 <- which(grepl(country2, colnames(m)))
+        if (length(country1) == 1 && length(country2) == 1) {
+            return(m[country1, country2])
+        } else {
+            return(NA)
+        }
+    })
+    
+    # Build data.frame
+    res <- data.frame(agreement = agreement,
+                      countries = c_str,
+                      years = 1:length(cosined_data) + offset)
+    return(res)
+}
+
 # From https://dataverse.harvard.edu/dataset.xhtml?persistentId=hdl:1902.1/12379
 un_data <- read_tsv("~/Dropbox/data/un/Dyadicdata.tab.gz")
 # Raw voting data
