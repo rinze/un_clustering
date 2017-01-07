@@ -90,12 +90,14 @@ cosined_data <- lapply(unique(years), function(year) {
     return(cos)
     })
 
-ccdata <- rbind(get_time_evolution(cosined_data, "Canada", "United Kingdom"),
-                get_time_evolution(cosined_data, "Canada", "United States of America"),
-                get_time_evolution(cosined_data, "United Kingdom", "United States of America"))
+ccdata <- rbind(get_time_evolution(cosined_data, "Iran", "United Kingdom"),
+                get_time_evolution(cosined_data, "Iran", "United States of America"),
+                get_time_evolution(cosined_data, "Iran", "Russia"))
 
 plt1 <- ggplot(ccdata) + geom_line(aes(x = years, y = agreement, color = countries), size = 1.2) +
-        scale_color_brewer(palette = "Set1")
+        scale_color_brewer(palette = "Set1") +
+        scale_x_continuous(breaks = seq(min(ccdata$years), max(ccdata$years), 5),
+                           minor_breaks = seq(min(ccdata$years), max(ccdata$years), 1))
 plot(plt1)
 
 # Proceed with the clustering
