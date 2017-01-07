@@ -3,6 +3,7 @@ library(readr)
 library(reshape2)
 library(tsne)
 library(ggplot2)
+theme_set(theme_bw(16))
 library(ggrepel)
 library(lsa) # cosine function
 
@@ -88,6 +89,14 @@ cosined_data <- lapply(unique(years), function(year) {
     cos <- cosine(as.matrix(raw_data_year_wide[, -c(1, 2)]))
     return(cos)
     })
+
+ccdata <- rbind(get_time_evolution(cosined_data, "Canada", "United Kingdom"),
+                get_time_evolution(cosined_data, "Canada", "United States of America"),
+                get_time_evolution(cosined_data, "United Kingdom", "United States of America"))
+
+plt1 <- ggplot(ccdata) + geom_line(aes(x = years, y = agreement, color = countries), size = 1.2) +
+        scale_color_brewer(palette = "Set1")
+plot(plt1)
 
 # Proceed with the clustering
 for (year in years) {
