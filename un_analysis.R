@@ -55,12 +55,12 @@ raw_data <- raw_data[which(raw_data$vote != 9), ]
 # 0 -> Abstain or no vote
 raw_data$vote3 <- ifelse(raw_data$vote == 1, 1,
                          ifelse(raw_data$vote == 3, -1, 0))
-# Binary vote:
+# Binary vote (unused):
 # 1 -> Yes
 # 0 -> Everything else
 raw_data$vote2 <- ifelse(raw_data$vote == 1, 1, 0)
 raw_data <- left_join(raw_data, cc_data, by = "ccode")
-# Let's suppose I can get rid of country 511 (don't have name) and NA.
+# Let's suppose I can get rid of country 511 (doesn't have name) and NA.
 # Can't find it in the codebook (?)
 raw_data <- raw_data[!is.na(raw_data$CountryName), ]
 
@@ -69,43 +69,36 @@ raw_data <- raw_data[!is.na(raw_data$CountryName), ]
 l <- raw_data %>% group_by(year) %>% summarise(n = length(unique(CountryName)))
 plot(l$year, l$n)
 
-# t-SNE for clustering!
-# Color: distance to USA / URSS until 1991. Later: ?
-
-# Test
-#years <- c(2013)
-years <- unique(raw_data$year)
-
 # Generate the cosine matrices. One per year, returned as a list
-
-cosined_data <- lapply(unique(years), function(year) {
+years <- unique(raw_data$year)
+cosined_data <- lapply(years, function(year) {
     cat("Computing cosine metrics for year", year, "\n")
     raw_data_year <- raw_data[raw_data$year == year, ]
     raw_data_year$CountryName <- factor(raw_data_year$CountryName)
-    # Or:
-    # raw_data_year_wide <- dcast(raw_data_year, CountryName ~ rcid + vote, fun.aggregate = length)
-    # And use that directly (save for the first column)
     raw_data_year_wide <- dcast(raw_data_year, rcid + vote3 ~ CountryName, fun.aggregate = length)
     cos <- cosine(as.matrix(raw_data_year_wide[, -c(1, 2)]))
     return(cos)
     })
 
-ccdata <- rbind(get_time_evolution(cosined_data, "Iran", "United Kingdom"),
-                get_time_evolution(cosined_data, "Iran", "United States of America"),
-                get_time_evolution(cosined_data, "Iran", "Russia"))
+# Plotting example
+ccdata <- rbind(get_time_evolution(cosined_data, "Russia", "Cuba"),
+                get_time_evolution(cosined_data, "China", "North Korea"),
+                get_time_evolution(cosined_data, "Venezuela", "Cuba"),
+                get_time_evolution(cosined_data, "Spain", "Morocco"))
 
 plt1 <- ggplot(ccdata) + geom_line(aes(x = years, y = agreement, color = countries), size = 1.2) +
-        scale_color_brewer(palette = "Set1") +
+        scale_color_brewer(palette = "Set1", name = "") +
         scale_x_continuous(breaks = seq(min(ccdata$years), max(ccdata$years), 5),
-                           minor_breaks = seq(min(ccdata$years), max(ccdata$years), 1))
+                           minor_breaks = seq(min(ccdata$years), max(ccdata$years), 1)) +
+        theme(legend.position = "bottom", legend.direction = "vertical")
 plot(plt1)
 
 # Proceed with the clustering
 for (year in years) {
     cat("Processing year", year, "...\n")
     cos <- cosined_data[[year - min(raw_data$year) + 1]] # 1946 -> 1, and so on
-    t_year <- tsne(cos, k = 2, initial_dims = 50, max_iter = 3000,
-                   perplexity = 20, whiten = FALSE)
+    t_year <- tsne(dist(1 - cos), k = 2, max_iter = 3000,
+                   perplexity = 100, whiten = FALSE)
     
     t_year <- data.frame(x = t_year[, 1], y = t_year[, 2],
                          country = rownames(cos))
@@ -113,7 +106,7 @@ for (year in years) {
     plt1 <- ggplot(t_year) + geom_text_repel(aes(x = x, y = y, label = country)) +
             geom_point(aes(x = x, y = y)) +
             ggtitle(sprintf("The world in %d", year))
-    #plot(plt1)
+    plot(plt1)
     ggsave(sprintf("/tmp/un_cluster_%s.pdf", year), plot = plt1,
            width = 15, height = 15)
 }
